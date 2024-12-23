@@ -4,7 +4,7 @@ import { ContactContext } from '../../context/ContactContext';
 import { FiPlusSquare } from "react-icons/fi";
 import Spinner from '../Spinner';
 import Contact from './Contact'
-import notFound from '../../../public/images/no-found.gif'
+import notFound from '../../assets/images/no-found.gif'
 import { PINK } from '../../helpers/colors';
 import { Link } from 'react-router-dom';
 

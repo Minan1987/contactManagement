@@ -2,7 +2,7 @@ import React from 'react'
 import { useContext } from 'react'
 import { ContactContext } from '../../context/ContactContext'
 import { Link } from 'react-router-dom'
-import img from "../../../public/images/add-contact-img.png"
+import img from "../../assets/images/add-contact-img.png"
 import Spinner from '../Spinner'
 
 const AddContact = () => {
