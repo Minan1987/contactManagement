@@ -30,15 +30,6 @@
       "id": 6
     },
     {
-      "fullname": "مینا نظری",
-      "photo": "https://placehold.co/200x200",
-      "mobile": "09124548361",
-      "email": "mina.nazary66@gmail.com",
-      "job": "مهندس نرم افزار",
-      "group": "2",
-      "id": 8
-    },
-    {
       "fullname": "مهین مهین ترابی",
       "photo": "https://placehold.co/200x200",
       "mobile": "09124548367",
@@ -55,6 +46,15 @@
       "job": "مهندس IT",
       "group": "3",
       "id": 10
+    },
+    {
+      "fullname": "مینا نظری",
+      "photo": "https://placehold.co/200x200",
+      "mobile": "09124548361",
+      "email": "mina.nazary66@gmail.com",
+      "job": "مهندس نرم افزار",
+      "group": "1",
+      "id": 11
     }
   ],
   "groups": [
