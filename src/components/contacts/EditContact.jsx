@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ContactContext } from '../../context/ContactContext';
 // import { getContact, getAllGroups, updateContact } from '../../services/contactServices';
 import Spinner from '../Spinner';
-import img from "../../assets/images/add-contact-img.png"
+import img from "/images/add-contact-img.png"
 import Contacts from './Contacts';
 
 const EditContact = () => {
