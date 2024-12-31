@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useContext } from 'react'
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { contactSchema } from '../../validations/contactSchema';
-import { Link,useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ContactContext } from '../../context/ContactContext';
-import { getContact, updateContact} from '../../services/contactServices'
+import { getContact, updateContact } from '../../services/contactServices'
 import Spinner from '../Spinner';
 import img from "/images/add-contact-img.png"
 import Contacts from './Contacts';
+import { useImmer } from 'use-immer';
 
 const EditContact = () => {
   const { contactId } = useParams()
@@ -20,7 +21,7 @@ const EditContact = () => {
     groups
   } = useContext(ContactContext);
 
-  const [contact, setContact] = useState({})
+  const [contact, setContact] = useImmer({})
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,22 +40,26 @@ const EditContact = () => {
 
   const editContactForm = async (values) => {
     try {
-      setLoading(true)
+      setLoading((draft) => !draft)
       const { data, status } = await updateContact(values, contactId)
 
-      if (status==200) {
-        setLoading(false)
-        const allContacts = [...contacts]
-        const contactIndex=allContacts.findIndex((c)=> c.id ===parseInt(contactId))
-        allContacts[contactIndex]= {...data}
+      if (status === 200) {
+        setLoading((draft) => !draft)
 
-        setContacts(allContacts)
-        setFilteredContacts(allContacts)
+        setContacts((draft) => { 
+          const contactIndex = draft.findIndex((c) => c.id === parseInt(contactId))
+          draft[contactIndex] = {...data}
+        })
+        setFilteredContacts((draft) => { 
+          const contactIndex = draft.findIndex((c) => c.id === parseInt(contactId))
+          draft[contactIndex] = {...data}
+        })
+        
         navigate("/contacts")
       }
     } catch (err) {
       console.log(err)
-      setLoading(false)
+      setLoading((draft) => !draft)
     }
   }
 

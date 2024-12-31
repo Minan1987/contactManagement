@@ -6,14 +6,15 @@ import { createContact, deleteContact, getAllContacts, getAllGroups, getContact,
 import { RiDeleteBin2Line } from "react-icons/ri";
 import { ContactContext } from './context/ContactContext'
 import _ from 'lodash'
+import { useImmer } from 'use-immer'
 
 const App = () => {
 
-  const [loading, setLoading] = useState(false);
-  const [contact, setContact] = useState({});
-  const [contacts, setContacts] = useState([]);
-  const [filteredContacts, setFilteredContacts] = useState([]);
-  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useImmer(false);
+  const [contact, setContact] = useImmer({});
+  const [contacts, setContacts] = useImmer([]);
+  const [filteredContacts, setFilteredContacts] = useImmer([]);
+  const [groups, setGroups] = useImmer([]);
 
 
   const navigate = useNavigate();
@@ -40,13 +41,11 @@ const App = () => {
 
   const createContactForm = async (values) => {
     try {
-      setLoading((prevLoading) => !prevLoading);
+      setLoading((draft) => !draft);
       const { status, data } = await createContact(values)
       if (status === 201) {
-        const allContacts = [...contacts, data];
-
-        setContacts(allContacts)
-        setFilteredContacts(allContacts)
+        setContacts((draft) => { draft.push(data) })
+        setFilteredContacts((draft) => { draft.push(data) })
         setLoading((prevloading) => !prevloading)
         navigate("/contacts")
       }
@@ -86,61 +85,62 @@ const App = () => {
   }
 
   const removeContact = async (contactId) => {
+    const contactsBackup = [...contacts];
     try {
-      setLoading(true)
-      const response = await deleteContact(contactId)
-      if (response) {
-        const { data: contactsData } = await getAllContacts()
-        setContacts(contactsData)
-        setLoading(false)
+      setContacts((draft) => draft.filter((c) => c.id !== contactId));
+      setFilteredContacts((draft) => draft.filter((c) => c.id !== contactId));
+
+      const { status } = await deleteContact(contactId);
+
+      if (status !== 200) {
+        setContacts(contactsBackup);
+        setFilteredContacts(contactsBackup);
       }
     } catch (err) {
-      console.log(err.message)
-      setLoading(false)
+      console.log(err.message);
+
+      setContacts(contactsBackup);
+      setFilteredContacts(contactsBackup);
     }
-  }
+  };
 
-  const searchContact =  _.debounce((query) => {
+const searchContact = _.debounce((query) => {
 
-    if (!query) return setFilteredContacts([...contacts]);
-
-    setFilteredContacts(
-      contacts.filter((contact) => {
-        return contact.fullname.toLowerCase().includes(query.toLowerCase());
-      })
-    );
-    console.log(filteredContacts)
-  }, 1000);
+  if (!query) return setFilteredContacts([...contacts]);
+  
+  setFilteredContacts((draft) => draft.filter((c)=> c.fullname.toLowerCase().includes(query.toLowerCase())))
+  console.log(filteredContacts)
+}, 1000);
 
 
-  return (
-    <ContactContext.Provider value={{
-      loading,
-      setLoading,
-      contact,
-      setContacts,
-      setFilteredContacts,
-      contacts,
-      filteredContacts,
-      groups,
-      onContactChange,
-      deleteContact: confirmDelete,
-      createContact: createContactForm,
-      searchContact,
-    }}>
-      <div className='app'>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Navigate to="/contacts" />} />
-          <Route path="/contacts" element={<Contacts />} />
-          <Route path="/contacts/add" element={<AddContact />} />
-          <Route path="/contacts/:contactId" element={<ViewContact />} />
-          <Route path="/contacts/edit/:contactId" element={<EditContact />}
-          />
-        </Routes>
-      </div>
-    </ContactContext.Provider>
-  )
+return (
+  <ContactContext.Provider value={{
+    loading,
+    setLoading,
+    contact,
+    setContacts,
+    setFilteredContacts,
+    contacts,
+    filteredContacts,
+    groups,
+    onContactChange,
+    deleteContact: confirmDelete,
+    createContact: createContactForm,
+    searchContact,
+  }}>
+    <div className='app'>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Navigate to="/contacts" />} />
+        <Route path="/contacts" element={<Contacts />} />
+        <Route path="/contacts/add" element={<AddContact />} />
+        <Route path="/contacts/:contactId" element={<ViewContact />} />
+        <Route path="/contacts/edit/:contactId" element={<EditContact />}
+        />
+      </Routes>
+    </div>
+  </ContactContext.Provider>
+)
 }
 
 export default App
