@@ -9,7 +9,7 @@ import { PINK } from '../../helpers/colors';
 import { Link } from 'react-router-dom';
 
 const Contacts = () => {
-  const { loading, contacts, deleteContact } = useContext(ContactContext)
+  const { loading, filteredContacts, deleteContact } = useContext(ContactContext)
   return (
     <>
       <section className='container' >
@@ -28,8 +28,8 @@ const Contacts = () => {
       {loading ? <Spinner /> :
         <section className="container-lg">
           <div className="row">
-            {contacts.length > 0 ?
-              contacts.map(c => (
+            {filteredContacts.length > 0 ?
+              filteredContacts.map(c => (
                 <Contact
                   key={c.id}
                   deleteContact={() => deleteContact(c.id, c.fullname)}

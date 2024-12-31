@@ -5,17 +5,17 @@ import { Navbar, Contacts, AddContact, EditContact, ViewContact } from './compon
 import { createContact, deleteContact, getAllContacts, getAllGroups, getContact, getGroup, updateContact } from './services/contactServices'
 import { RiDeleteBin2Line } from "react-icons/ri";
 import { ContactContext } from './context/ContactContext'
+import _ from 'lodash'
 
 const App = () => {
 
-  const [loading, setLoading] = useState(false)
-  const [contacts, setContacts] = useState([])
-  const [filteredContacts, setFilteredContacts] = useState([])
-  const [groups, setGroups] = useState([])
-  const [contact, setContact] = useState({})
-  const [group, setGroup] = useState({})
-  const [contactQuery, setContactQuery] = useState({ text: "" })
-  const [editableContact, setEditableContact] = useState({})
+  const [loading, setLoading] = useState(false);
+  const [contact, setContact] = useState({});
+  const [contacts, setContacts] = useState([]);
+  const [filteredContacts, setFilteredContacts] = useState([]);
+  const [groups, setGroups] = useState([]);
+
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,9 +24,11 @@ const App = () => {
         setLoading(true)
         const { data: contactsData } = await getAllContacts()
         const { data: groupsData } = await getAllGroups()
+
         setContacts(contactsData)
         setFilteredContacts(contactsData)
         setGroups(groupsData)
+
         setLoading(false)
       } catch (err) {
         console.log(err.message)
@@ -35,46 +37,6 @@ const App = () => {
     }
     fetchData()
   }, [])
-
-  const getContactById = (contactId) => {
-    return contacts.find((contact) => contact.id === parseInt(contactId))
-  }
-
-  const getGroupById = (groupId) => {
-    return groups.find((group) => group.id === groupId)
-  }
-
-  const fetchContactForEdit = async (contactId) => {
-    try {
-      setLoading(true)
-      const { data: contactData } = await getContact(contactId)
-      setEditableContact(contactData)
-      setLoading(false)
-    } catch (err) {
-      console.log(err.message)
-      setLoading(false)
-    }
-  }
-
-  const editContactForm = async (event, contactId) => {
-    event.preventDefault();
-    try {
-      setLoading(true);
-      const { data } = await updateContact(editableContact, contactId);
-      setLoading(false);
-      if (data) {
-        const updatedContacts = contacts.map((contact) =>
-          contact.id === parseInt(contactId) ? data : contact
-        );
-        setContacts(updatedContacts);
-        setFilteredContacts(updatedContacts);
-        navigate("/contacts");
-      }
-    } catch (err) {
-      console.log(err.message);
-      setLoading(false);
-    }
-  }
 
   const createContactForm = async (values) => {
     try {
@@ -90,17 +52,14 @@ const App = () => {
       }
     } catch (err) {
       console.log(err.message)
+      setLoading((prevLoading) => !prevLoading);
     }
-  }
-
-  const onContactChangeEdit = (event) => {
-    setEditableContact({ ...editableContact, [event.target.name]: event.target.value })
   }
 
   const onContactChange = (event) => {
     setContact({ ...contact, [event.target.name]: event.target.value })
   }
-  
+
   const confirmDelete = (contactId, contactFullname) => {
     confirmAlert({
       customUI: ({ onClose }) => {
@@ -141,33 +100,33 @@ const App = () => {
     }
   }
 
-  const searchContact = (event) => {
-    setContactQuery({ ...contactQuery, text: event.target.value })
-    const allFillteredContacts = contacts.filter((contact) => {
-      return contact.fullname.toLowerCase().includes(event.target.value.toLowerCase())
-    })
-    setFilteredContacts(allFillteredContacts)
-  }
+  const searchContact =  _.debounce((query) => {
+
+    if (!query) return setFilteredContacts([...contacts]);
+
+    setFilteredContacts(
+      contacts.filter((contact) => {
+        return contact.fullname.toLowerCase().includes(query.toLowerCase());
+      })
+    );
+    console.log(filteredContacts)
+  }, 1000);
+
 
   return (
     <ContactContext.Provider value={{
       loading,
       setLoading,
       contact,
+      setContacts,
+      setFilteredContacts,
       contacts,
       filteredContacts,
-      contactQuery,
       groups,
-      getContactById,
-      getGroupById,
       onContactChange,
       deleteContact: confirmDelete,
       createContact: createContactForm,
       searchContact,
-      fetchContactForEdit,
-      editableContact,
-      onContactChangeEdit,
-      editContactForm,
     }}>
       <div className='app'>
         <Navbar />

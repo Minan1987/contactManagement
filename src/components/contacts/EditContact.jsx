@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useContext } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { contactSchema } from '../../validations/contactSchema';
+import { Link,useNavigate, useParams } from 'react-router-dom';
 import { ContactContext } from '../../context/ContactContext';
-// import { getContact, getAllGroups, updateContact } from '../../services/contactServices';
+import { getContact, updateContact} from '../../services/contactServices'
 import Spinner from '../Spinner';
 import img from "/images/add-contact-img.png"
 import Contacts from './Contacts';
@@ -12,61 +14,49 @@ const EditContact = () => {
   const {
     loading,
     setLoading,
-    fetchContactForEdit,
-    editableContact,
-    onContactChangeEdit,
-    editContactForm,
-    groups,
+    contacts,
+    setContacts,
+    setFilteredContacts,
+    groups
   } = useContext(ContactContext);
 
+  const [contact, setContact] = useState({})
+
   useEffect(() => {
-    fetchContactForEdit(contactId);
-  }, [contactId]);
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        const { data: contactData } = await getContact(contactId)
+        setLoading(false)
+        setContact(contactData)
+      } catch (err) {
+        console.log(err)
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
 
-  // const [contact, setContact] = useState({})
+  const editContactForm = async (values) => {
+    try {
+      setLoading(true)
+      const { data, status } = await updateContact(values, contactId)
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       loading(true)
-  //       const { data: contactData } = await getContact(contactId)
-  //       loading(false)
-  //       setContact(contactData)
-  //     } catch (err) {
-  //       console.log(err)
-  //       loading(false)
-  //     }
-  //   }
-  //   fetchData()
-  // }, [])
+      if (status==200) {
+        setLoading(false)
+        const allContacts = [...contacts]
+        const contactIndex=allContacts.findIndex((c)=> c.id ===parseInt(contactId))
+        allContacts[contactIndex]= {...data}
 
-
-  // const onContactChangeEdit = (event) => {
-  //   setContact({ ...contact,  [event.target.name]: event.target.value  })
-  // }
-
-  // const editContactForm = async (event) => {
-  //   event.preventDefault()
-  //   try {
-  //     loading(true)
-  //     const { data, status } = await updateContact(contact, contactId)
-
-  //     if (data) {
-  //       setLoadind(false)
-  //       const allContacts = [...Contacts]
-  //       const contactIndex=allContacts.findIndex((c)=> c.id ===parseInt(contactId))
-  //       allContacts[contactIndex]= {...data}
-
-  //       setContacts(allContacts)
-  //       setFilteredContact(allContacts)
-  //       navigate("/contacts")
-  //     }
-  //   } catch (err) {
-  //     console.log(err)
-  //     loading(false)
-  //   }
-  // }
-
+        setContacts(allContacts)
+        setFilteredContacts(allContacts)
+        navigate("/contacts")
+      }
+    } catch (err) {
+      console.log(err)
+      setLoading(false)
+    }
+  }
 
   return (
     <>
@@ -75,75 +65,78 @@ const EditContact = () => {
           <div className='container'>
             <div className="row">
               <div className="col-md-6">
-                <form onSubmit={(event) => editContactForm(event, contactId)} className='form-group my-5'>
-                  <input
-                    name="fullname"
-                    type="text"
-                    className="form-control"
-                    value={editableContact.fullname}
-                    onChange={onContactChangeEdit}
-                    required={true}
-                    placeholder="نام و نام خانوادگی"
-                  />
-                  <input className='form-control mt-2'
-                    type='text'
-                    name='photo'
-                    value={editableContact.photo}
-                    onChange={onContactChangeEdit}
-                    required={true}
-                  />
-                  <input className="form-control mt-2"
-                    placeholder='موبایل'
-                    type="text"
-                    name='mobile'
-                    value={editableContact.mobile}
-                    onChange={onContactChangeEdit}
-                    required={true}
-                  />
-                  <input className="form-control mt-2"
-                    placeholder='ایمیل'
-                    type="email"
-                    name='email'
-                    value={editableContact.email}
-                    onChange={onContactChangeEdit}
-                    required={true}
-                  />
-                  <input className="form-control mt-2"
-                    placeholder='شغل'
-                    type="text"
-                    name='job'
-                    value={editableContact.job}
-                    onChange={onContactChangeEdit}
-                    required={true}
-                  />
-                  <select className='form-control mt-2'
-                    name='group'
-                    value={editableContact.group}
-                    onChange={onContactChangeEdit}
-                    required={true}
-                  >
-                    <option>انتخاب گروه</option>
-                    {
-                      groups.length > 0 && groups.map((group) => (
-                        <option key={group.id} value={group.id}>{group.name}</option>
-                      ))
-                    }
-                  </select>
-                  <div className='mt-3 d-flex justify-content-between'>
-                    <input className='btn btn-primary'
-                      type='submit'
-                      value="ویرایش مخاطب"
+                <Formik
+                  initialValues={{
+                    fullname: contact.fullname,
+                    photo: contact.photo,
+                    mobile: contact.mobile,
+                    email: contact.email,
+                    job: contact.job,
+                    group: contact.group
+                  }}
+                  validationSchema={contactSchema}
+                  onSubmit={(values) => {
+                    editContactForm(values)
+                  }}
+                >
+                  <Form className='form-group my-5'>
+                    <Field className='form-control'
+                      placeholder='نام و نام خانوادگی'
+                      type='text'
+                      name='fullname'
                     />
-                    <button
-                      type="button"
-                      className="btn btn-secondary mx-2"
-                      onClick={() => navigate("/contacts")}
-                    >
-                      بازگشت
-                    </button>
-                  </div>
-                </form>
+                    <ErrorMessage name='fullname' render={msg => <div className='text-danger'>{msg}</div>} />
 
+                    <Field className='form-control mt-2'
+                      placeholder='عکس'
+                      type='text'
+                      name='photo'
+                    />
+                    <ErrorMessage name='photo' render={msg => <div className='text-danger'>{msg}</div>} />
+
+                    <Field className="form-control mt-2"
+                      placeholder='موبایل'
+                      type="text"
+                      name='mobile'
+                    />
+                    <ErrorMessage name='mobile' render={msg => <div className='text-danger'>{msg}</div>} />
+
+                    <Field className="form-control mt-2"
+                      placeholder='ایمیل'
+                      type="email"
+                      name='email'
+                    />
+                    <ErrorMessage name='email' render={msg => <div className='text-danger'>{msg}</div>} />
+
+                    <Field className="form-control mt-2"
+                      placeholder='شغل'
+                      type="text"
+                      name='job'
+                    />
+                    <ErrorMessage name='job' render={msg => <div className='text-danger'>{msg}</div>} />
+
+                    <Field className='form-control mt-2'
+                      name='group'
+                      as='select'
+                    >
+                      <option>انتخاب گروه</option>
+                      {
+                        groups.length > 0 && groups.map((group) => (
+                          <option key={group.id} value={group.id}>{group.name}</option>
+                        )
+                        )
+                      }
+                    </Field>
+                    <ErrorMessage name='group' render={msg => <div className='text-danger'>{msg}</div>} />
+                    <div className='mt-3 d-flex justify-content-between'>
+                      <input className='btn btn-primary'
+                        type='submit'
+                        value="ویرایش مخاطب"
+                      />
+                      <Link to="/contacts" className="btn btn-secondary">انصراف</Link>
+                    </div>
+                  </Form>
+                </Formik>
               </div>
               <div className="col-6">
                 <img src={img} alt="" width="100%" />

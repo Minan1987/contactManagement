@@ -2,37 +2,42 @@ import React, { useEffect, useState, useContext } from 'react'
 import { ContactContext } from '../../context/ContactContext';
 import { CURRENTLINE, CYAN } from "../../helpers/colors";
 import { Link, useParams } from 'react-router-dom';
-// import { getContact, getGroup } from '../../services/contactServices';
+import { getContact, getGroup } from '../../services/contactServices';
 import Spinner from '../Spinner';
 
 const ViewContact = () => {
-  const { contactId } = useParams()
-  const { loading, getContactById, getGroupById } = useContext(ContactContext)
-  const contact = getContactById(contactId)
-  const group = contact ? getGroupById(contact.group) : null
-  
-  // const [state, setState] = useState({
-  //   contact: {},
-  //   group: {}
-  // })
+  const { contactId } = useParams();
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       setLoading(false)
-  //       const { data: contactData } = await getContact(contactId)
-  //       const { data: groupData } = await getGroup(contactData.group)
-  //       setLoading(true)
-  //       setState({ ...state , contact: contactData, group: groupData })
-  //     } catch (err) {
-  //       console.log(err)
-  //       setLoading(false)
-  //     }
-  //   }
-  //   fetchData()
-  // }, [])
+  const [state, setState] = useState({
+    contact: {},
+    group: {},
+  });
+  const { loading, setLoading } = useContext(ContactContext);
 
-  // const { contact, group } = state
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        const { data: contactData } = await getContact(contactId);
+        const { data: groupData } = await getGroup(contactData.group);
+
+        setLoading(false);
+        setState({
+          ...state,
+          contact: contactData,
+          group: groupData,
+        });
+      } catch (err) {
+        console.log(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const { contact, group } = state;
 
   return (
     <div className='row justify-content-center'>
