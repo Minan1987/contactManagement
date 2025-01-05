@@ -8,6 +8,7 @@ import Spinner from '../Spinner';
 import img from "/images/add-contact-img.png"
 import Contacts from './Contacts';
 import { useImmer } from 'use-immer';
+import { toast } from 'react-toastify';
 
 const EditContact = () => {
   const { contactId } = useParams()
@@ -54,7 +55,7 @@ const EditContact = () => {
           const contactIndex = draft.findIndex((c) => c.id === parseInt(contactId))
           draft[contactIndex] = {...data}
         })
-        
+        toast.info("مخاطب با موفقیت ویرایش شد.")
         navigate("/contacts")
       }
     } catch (err) {

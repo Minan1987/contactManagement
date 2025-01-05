@@ -5,6 +5,7 @@ import { Navbar, Contacts, AddContact, EditContact, ViewContact } from './compon
 import { createContact, deleteContact, getAllContacts, getAllGroups, getContact, getGroup, updateContact } from './services/contactServices'
 import { RiDeleteBin2Line } from "react-icons/ri";
 import { ContactContext } from './context/ContactContext'
+import { ToastContainer, toast } from 'react-toastify'
 import _ from 'lodash'
 import { useImmer } from 'use-immer'
 
@@ -44,6 +45,7 @@ const App = () => {
       setLoading((draft) => !draft);
       const { status, data } = await createContact(values)
       if (status === 201) {
+        toast.success("مخاطب جدید ایجاد شد.")
         setContacts((draft) => { draft.push(data) })
         setFilteredContacts((draft) => { draft.push(data) })
         setLoading((prevloading) => !prevloading)
@@ -91,7 +93,7 @@ const App = () => {
       setFilteredContacts((draft) => draft.filter((c) => c.id !== contactId));
 
       const { status } = await deleteContact(contactId);
-
+      toast.error("مخاطب با موفقیت حذف شد.")
       if (status !== 200) {
         setContacts(contactsBackup);
         setFilteredContacts(contactsBackup);
@@ -130,6 +132,7 @@ return (
   }}>
     <div className='app'>
       <Navbar />
+      <ToastContainer rtl={true} position='top-center' autoClose={3000} theme='colored' />
       <Routes>
         <Route path="/" element={<Navigate to="/contacts" />} />
         <Route path="/contacts" element={<Contacts />} />
